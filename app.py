@@ -16,9 +16,8 @@ st.markdown("Upload your resume to get an instant ATS score, role suitability ra
 
 # 2. Sidebar fallback input if the environment variable isn't found
 if not hf_token:
-    st.sidebar.warning("⚠️ `HF_TOKEN` secret not found in HF Space.")
-    hf_token = st.sidebar.text_input("Enter Hugging Face Token (hf_...):", type="default")
-
+    st.sidebar.warning("`HF_TOKEN` secret not found in HF Space.")
+    hf_token = st.sidebar.text_input("Enter Hugging Face Token (hf_...):", type="password")
 
 # Configure the Hugging Face Client
 if hf_token:
@@ -37,6 +36,7 @@ target_role = st.sidebar.selectbox(
         "NLP Engineer",
         "Computer Vision Engineer",
         "MLOps Engineer"
+
     ]
 )
 
@@ -51,7 +51,7 @@ def extract_text_from_pdf(uploaded_file):
     return text
 
 def analyze_resume(resume_text, role):
-    """Sends the resume text to Hugging Face API for an ATS analysis."""
+    # Sends the resume text to Hugging Face API for an ATS analysis
     if not client:
         return "Error: Hugging Face Token is missing. Please set it via Space Secrets or the sidebar."
 
@@ -67,18 +67,18 @@ def analyze_resume(resume_text, role):
 
     Provide your response in a clean, highly scannable Markdown format with the following explicit sections:
     
-    ### 🎯 Summary Scores
+    ### Summary Scores
     - **ATS Score:** [Provide an objective percentage score out of 100%]
     - **Role Fit Score:** [Provide a recommended rating out of 10 for the role "{role}"]
 
-    ### 🔍 Keyword & Skills Gap Analysis
+    ### Keyword & Skills Gap Analysis
     - **Found Critical Skills:** [List key technical skills matching the role found in the resume]
     - **Missing/Weak Skills:** [Identify crucial AI/ML/Data Science concepts or tools missing that would strengthen the application]
 
-    ### 🛠 Project & Experience Review
+    ### Project & Experience Review
     - [Provide constructive feedback on technical depth, metrics, and whether they demonstrated end-to-end implementation/deployment]
 
-    ### 💡 Actionable Improvement Checklist
+    ### Actionable Improvement Checklist
     - [Provide 3-4 bullet points on exactly what to change, add, or rewrite to maximize impact]
     
     Resume Content:
@@ -101,12 +101,12 @@ def analyze_resume(resume_text, role):
 uploaded_file = st.file_uploader("Upload your Resume (PDF format only)", type=["pdf"])
 
 if uploaded_file is not None:
-    st.success("📄 Resume uploaded successfully!")
+    st.success("Resume uploaded successfully!")
     
     # Analyze button
-    if st.button("Analyze Resume", type="primary"):
+    if st.button("Analyze Resume", type='primary'):
         if not hf_token:
-            st.error("Cannot analyze. Please provide a valid Hugging Face Token first.")
+            st.error("Cannot analyze.Please Enter a valid Hugging Face Token first.")
         else:
             with st.spinner("Analyzing resume against industry standards... Please wait."):
                 # 1. Extract text from the PDF
@@ -114,11 +114,12 @@ if uploaded_file is not None:
                 
                 if not resume_text.strip():
                     st.error("Could not extract text from the PDF. Please ensure it is not an image-only/scanned PDF.")
+
                 else:
                     # 2. Query Hugging Face API
                     analysis_report = analyze_resume(resume_text, target_role)
                     
                     # 3. Display Results
                     st.markdown("---")
-                    st.subheader(f"📊 Analysis Report for {target_role}")
+                    st.subheader(f"Analysis Report for {target_role}")
                     st.markdown(analysis_report)
