@@ -7,9 +7,18 @@ load_dotenv()
 # 1. Fetch the Hugging Face Token automatically from Space Secrets
 # By default, HF Spaces often provides 'HF_TOKEN' if enabled in settings
 hf_token = os.getenv("HF_TOKEN")
+UPLOAD_DIR = "uploaded_resumes"
 
 # --- Streamlit UI Setup ---
 st.set_page_config(page_title="ResumeEval AI", page_icon="📄", layout="wide")
+
+st.markdown("""
+<style>
+[data-testid="stAppDeployButton"] {
+    display: none;
+}
+</style>
+""", unsafe_allow_html=True)
 
 st.title("Resume Analyzer")
 st.markdown("Upload your resume to get an instant ATS score, role suitability rating, and optimization tips.")
@@ -39,6 +48,36 @@ target_role = st.sidebar.selectbox(
 
     ]
 )
+
+
+def save_uploaded_file(uploaded_file):
+    """Saves the uploaded file to the local directory."""
+    try:
+        # Create directory if it doesn't exist
+        if not os.path.exists(UPLOAD_DIR):
+            os.makedirs(UPLOAD_DIR)
+        
+        # Define the full file path
+        file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
+        
+        # Write the file bytes locally
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+            
+        return file_path
+    except Exception as e:
+        st.error(f"Error saving file: {e}")
+        return None
+
+# --- Main Streamlit Upload Logic ---
+uploaded_file = st.file_uploader("Upload your Resume (PDF format only)", type=["pdf"])
+
+if uploaded_file is not None:
+    # Save the file locally when uploaded
+    saved_path = save_uploaded_file(uploaded_file)
+    
+    if saved_path:
+        st.success(f"File saved locally at: `{saved_path}`")
 
 def extract_text_from_pdf(uploaded_file):
     """Extracts all text content from an uploaded PDF file."""
@@ -97,8 +136,8 @@ def analyze_resume(resume_text, role):
     except Exception as e:
         return f"An error occurred while communicating with the Hugging Face model: {str(e)}"
 
-# Main layout upload area
-uploaded_file = st.file_uploader("Upload your Resume (PDF format only)", type=["pdf"])
+# # Main layout upload area
+# uploaded_file = st.file_uploader("Upload your Resume (PDF format only)", type=["pdf"])
 
 if uploaded_file is not None:
     st.success("Resume uploaded successfully!")
